@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="el" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${store.name} + ' - Μενού'">Store Menu</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .container { display: flex; gap: 20px; }
+        .menu-section { flex: 2; }
+        .cart-section { flex: 1; border: 1px solid #ccc; padding: 15px; border-radius: 8px; background: #f9f9f9; position: sticky; top: 20px; height: fit-content; }
+        .menu-item { border-bottom: 1px solid #eee; padding: 10px 0; list-style: none; }
+        .cart-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .btn-order { background-color: #ff6f61; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
+        .btn-checkout { background-color: #28a745; color: white; border: none; padding: 10px; width: 100%; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .error-msg { color: red; background: #ffe6e6; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
+        .btn-add-addr { display: inline-block; margin-top: 5px; color: blue; text-decoration: underline; font-size: 0.9em; }
+
+        /* Πάνελ μόνο για το Status */
+        .owner-panel {
+            background-color: #e3f2fd;
+            border: 2px solid #2196f3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-status { padding: 10px 20px; font-weight: bold; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-add-product { background-color: #28a745; color: white; padding: 8px 12px; text-decoration: none; border-radius: 4px; font-weight: bold; }
+        .owner-actions a { margin-right: 10px; font-weight: bold; text-decoration: none; }
+    </style>
+</head>
+<body>
+<header>
+    <h1 th:text="${store.name}">Όνομα Καταστήματος</h1>
+    <nav>
+        <a sec:authorize="hasRole('OWNER')" th:href="@{/owner/dashboard}" style="color: gold; font-weight: bold;">🎛️ Dashboard</a>
+        <span sec:authorize="hasRole('OWNER')"> | </span>
+
+        <a th:href="@{/profile(returnToStore=${store.id})}">Προφίλ</a> |
+        <a th:href="@{/}">Αρχική</a>
+    </nav>
+</header>
+
+<main class="container">
+    <section class="menu-section">
+        <div th:if="${param.error}" class="error-msg">
+            <strong>Σφάλμα:</strong> <span th:text="${param.error}"></span>
+        </div>
+
+        <div th:if="${isOwner}" class="owner-panel">
+            <div>
+                <strong style="color:#0d47a1;">Διαχείριση Καταστήματος</strong><br>
+                Κατάσταση:
+                <span th:text="${store.open ? 'ΑΝΟΙΧΤΟ' : 'ΚΛΕΙΣΤΟ'}"
+                      th:style="${store.open ? 'color: green; font-weight:bold;' : 'color: red; font-weight:bold;'}"></span>
+            </div>
+
+            <form th:action="@{/store/{id}/status(id=${store.id})}" method="post" style="margin:0;">
+                <input type="hidden" name="open" th:value="${!store.open}" />
+                <button type="submit" class="btn-status"
+                        th:text="${store.open ? 'Κλείσιμο' : 'Άνοιγμα'}"
+                        th:styleappend="${store.open ? 'background-color: #d32f2f;' : 'background-color: #388e3c;'}">
+                </button>
+            </form>
+        </div>
+
+        <div class="store-info">
+            <p><strong>Περιοχή:</strong> <span th:text="${store.area}"></span> - <span th:text="${store.address}"></span></p>
+            <p><strong>Κουζίνα:</strong> <span th:text="${store.cuisineType}"></span></p>
+            <p><strong>Ελάχιστη Παραγγελία:</strong> <span id="minOrder" th:text="${store.minOrderAmount}">0.00</span>€</p>
+        </div>
+        <hr>
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Μενού</h2>
+            <a th:if="${isOwner}" th:href="@{/product/new(storeId=${store.id})}" class="btn-add-product">+ Προσθήκη Πιάτου</a>
+        </div>
+
+        <ul th:if="${products != null and !products.isEmpty()}">
+            <li th:each="product : ${products}" class="menu-item">
+                <h3 th:text="${product.name}" style="margin-bottom:5px;"></h3>
+                <p th:text="${product.description}" style="font-style:italic; color:#555; margin-top:0;"></p>
+                <p>
+                    <strong>Τιμή:</strong> €<span th:id="'price-' + ${product.id}" th:text="${product.price}"></span>
+                    <span th:if="${dollarRate != null}" style="color:gray; font-size:0.9em;">(~<span th:text="${#numbers.formatDecimal(product.price * dollarRate, 1, 2)}"></span>$)</span>
+                </p>
+
+                <div th:if="${isOwner}" class="owner-actions">
+                    <a th:href="@{/product/edit/{id}(id=${product.id})}" style="color: blue;">✏️ Επεξεργασία</a>
+                    <a th:href="@{/product/delete/{id}(id=${product.id})}" style="color: red;" onclick="return confirm('Διαγραφή;')">🗑️ Διαγραφή</a>
+                </div>
+
+                <button th:if="${store.open and !isOwner and product.available}" class="btn-order"
+                        th:onclick="addToCart( [[${product.id}]], [[${product.name}]], [[${product.price}]])">Προσθήκη</button>
+                <span th:if="${!store.open}" style="color:red; font-weight:bold;">Κλειστό</span>
+            </li>
+        </ul>
+        <div th:if="${products == null or products.isEmpty()}"><p>Το μενού είναι άδειο.</p></div>
+    </section>
+
+    <aside class="cart-section">
+        <h3>Το Καλάθι μου</h3>
+        <div id="cart-items"><p>Το καλάθι είναι άδειο</p></div>
+        <hr>
+        <p><strong>Σύνολο: <span id="cart-total">0.00</span>€</strong></p>
+
+        <form th:action="@{/orders/checkout}" method="post" id="order-form" style="display:none;" onsubmit="return validateOrder()">
+            <input type="hidden" name="storeId" th:value="${store.id}">
+            <div id="hidden-inputs"></div>
+            <label>Τύπος Παραγγελίας:</label>
+            <select name="type" id="orderType" onchange="toggleAddress()" style="width: 100%; padding: 5px; margin-bottom: 10px;">
+                <option value="PICKUP">Παραλαβή (Pickup)</option>
+                <option value="DELIVERY">Παράδοση (Delivery)</option>
+            </select>
+            <div id="address-div" style="display:none; margin-bottom: 15px; padding-top: 10px; border-top: 1px dashed #ccc;">
+                <label><strong>Διεύθυνση:</strong></label>
+                <div th:if="${not #lists.isEmpty(addresses)}">
+                    <select name="addressId" id="addressSelect" style="width: 100%; padding: 5px;">
+                        <option th:each="addr : ${addresses}" th:value="${addr.id}" th:text="${addr.street + ' ' + addr.city}"></option>
+                    </select>
+                    <br><a th:href="@{/profile(returnToStore=${store.id})}" class="btn-add-addr">+ Νέα διεύθυνση</a>
+                </div>
+                <div th:if="${#lists.isEmpty(addresses)}" style="color: #d9534f; background: #fff5f5; padding: 5px;">
+                    <a th:href="@{/profile(returnToStore=${store.id})}" class="btn-add-addr">Προσθήκη διεύθυνσης</a>
+                    <input type="hidden" id="noAddressFlag" value="true">
+                </div>
+            </div>
+            <button type="submit" class="btn-checkout">Ολοκλήρωση</button>
+        </form>
+        <button onclick="clearCart()" style="margin-top: 10px; background: #ccc; border: none; padding: 5px; width: 100%; cursor: pointer;">Καθαρισμός</button>
+    </aside>
+</main>
+
+<script th:inline="javascript">
+    let cart = JSON.parse(localStorage.getItem('streetfood_cart')) || {};
+    updateCartUI();
+    toggleAddress();
+
+    function addToCart(id, name, price) {
+        if (!cart[id]) { cart[id] = { name: name, price: price, qty: 1 }; }
+        else { cart[id].qty += 1; }
+        saveCart(); updateCartUI();
+    }
+    function saveCart() { localStorage.setItem('streetfood_cart', JSON.stringify(cart)); }
+    function clearCart() { cart = {}; saveCart(); updateCartUI(); }
+
+    function toggleAddress() {
+        const type = document.getElementById('orderType').value;
+        document.getElementById('address-div').style.display = (type === 'DELIVERY') ? 'block' : 'none';
+    }
+
+    function validateOrder() {
+        if (document.getElementById('orderType').value === 'DELIVERY' && document.getElementById('noAddressFlag')) {
+            alert("Πρέπει να προσθέσετε διεύθυνση!"); return false;
+        }
+        const min = parseFloat(document.getElementById('minOrder').innerText.replace(',', '.')) || 0;
+        const total = parseFloat(document.getElementById('cart-total').innerText.replace(',', '.')) || 0;
+        if (total < min) { alert("Η παραγγελία είναι κάτω από το ελάχιστο όριο (" + min + "€)."); return false; }
+        return true;
+    }
+
+    function updateCartUI() {
+        const cartDiv = document.getElementById('cart-items');
+        let html = '', total = 0, inputs = '';
+        for (let id in cart) {
+            let item = cart[id];
+            let t = item.price * item.qty;
+            total += t;
+            html += `<div class="cart-item"><span>${item.name} x${item.qty}</span><span>${t.toFixed(2)}€</span></div>`;
+            inputs += `<input type="hidden" name="items[${id}]" value="${item.qty}">`;
+        }
+        cartDiv.innerHTML = Object.keys(cart).length === 0 ? '<p>Το καλάθι είναι άδειο</p>' : html;
+        document.getElementById('cart-total').innerText = total.toFixed(2);
+        document.getElementById('hidden-inputs').innerHTML = inputs;
+        document.getElementById('order-form').style.display = total > 0 ? 'block' : 'none';
+    }
+</script>
+</body>
+</html>

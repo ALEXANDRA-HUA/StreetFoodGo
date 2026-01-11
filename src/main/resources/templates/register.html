@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Εγγραφή - Street Food Go</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="login-page">
+
+<div class="login-container" style="max-width: 450px;">
+    <h2>Εγγραφή</h2>
+
+    <div th:if="${error}" class="message error"
+         style="color: white; background-color: #dc3545; padding: 10px; border-radius: 4px; margin-bottom: 15px;">
+        <span th:text="${error}"></span>
+    </div>
+
+    <form th:action="@{/register}" method="post">
+
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="Διαλέξτε username" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="name@example.com" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password (min 6 chars)</label>
+            <input type="password" id="password" name="password" placeholder="Διαλέξτε κωδικό" required minlength="6">
+        </div>
+
+        <div class="form-group">
+            <label for="firstName">Όνομα</label>
+            <input type="text" id="firstName" name="firstName" placeholder="Το όνομά σας" required>
+        </div>
+
+        <div class="form-group">
+            <label for="lastName">Επώνυμο</label>
+            <input type="text" id="lastName" name="lastName" placeholder="Το επώνυμό σας" required>
+        </div>
+
+        <button type="submit" class="btn-login" style="margin-top: 20px;">Εγγραφή</button>
+    </form>
+
+    <a th:href="@{/login}" class="register-link">Έχετε ήδη λογαριασμό; Συνδεθείτε</a>
+</div>
+
+</body>
+</html>

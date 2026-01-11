@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="el" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Διαχείριση Προϊόντος</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<main style="max-width: 500px; margin: 50px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+    <h2 th:text="${product.id == null ? 'Νέο Προϊόν' : 'Επεξεργασία Προϊόντος'}"></h2>
+
+    <form th:action="@{/product/save}" method="post" th:object="${product}">
+        <input type="hidden" name="storeId" th:value="${storeId}">
+        <input type="hidden" th:field="*{id}">
+
+        <div style="margin-bottom: 15px;">
+            <label>Όνομα:</label>
+            <input type="text" th:field="*{name}" required style="width:100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label>Περιγραφή:</label>
+            <textarea th:field="*{description}" style="width:100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label>Τιμή (€):</label>
+            <input type="number" step="0.01" th:field="*{price}" required style="width:100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label>Διαθέσιμο:</label>
+            <input type="checkbox" th:field="*{available}">
+        </div>
+
+        <button type="submit" style="background-color: #007bff; color: white; padding: 10px 20px; border: none; cursor: pointer; border-radius: 5px;">Αποθήκευση</button>
+        <a th:href="@{/store/{id}(id=${storeId})}" style="margin-left: 10px; color: #666;">Ακύρωση</a>
+    </form>
+</main>
+</body>
+</html>

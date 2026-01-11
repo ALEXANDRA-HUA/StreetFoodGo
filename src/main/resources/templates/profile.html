@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="el" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Το Προφίλ μου</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<header>
+    <h1>Το Προφίλ μου</h1>
+    <nav><a th:href="@{/}">Αρχική</a></nav>
+</header>
+
+<main style="padding: 20px;">
+    <div th:if="${returnToStore != null}" style="margin-bottom: 20px; padding: 10px; background-color: #e3f2fd; border-left: 5px solid #2196F3;">
+        <strong>Έχετε μια παραγγελία σε εξέλιξη!</strong><br>
+        <a th:href="@{'/store/' + ${returnToStore}}"
+           style="display: inline-block; margin-top: 5px; background-color: #2196F3; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+            ⬅ Επιστροφή στο Καλάθι
+        </a>
+    </div>
+
+    <h2>Τα στοιχεία μου</h2>
+    <p><strong>Όνομα Χρήστη:</strong> <span th:text="${user.username}">User</span></p>
+    <p><strong>Email:</strong> <span th:text="${user.email}">email@example.com</span></p>
+
+    <hr>
+
+    <h3>Οι Διευθύνσεις μου</h3>
+    <ul>
+        <li th:each="addr : ${addresses}">
+            <span th:text="${addr.street} + ' ' + ${addr.city} + ', ' + ${addr.zip}">Διεύθυνση</span>
+        </li>
+    </ul>
+
+    <div th:if="${addresses.isEmpty()}">
+        <p>Δεν έχετε αποθηκεύσει καμία διεύθυνση ακόμα.</p>
+    </div>
+
+    <hr>
+
+    <h3>Προσθήκη Νέας Διεύθυνσης</h3>
+    <form th:action="@{/profile/address/add}" th:object="${newAddress}" method="post" style="max-width: 300px;">
+        <input type="hidden" name="returnToStore" th:value="${returnToStore}">
+
+        <label>Οδός & Αριθμός:</label>
+        <input type="text" th:field="*{street}" required placeholder="π.χ. Ερμού 10" style="width: 100%; margin-bottom: 10px;">
+
+        <label>Πόλη:</label>
+        <input type="text" th:field="*{city}" required placeholder="π.χ. Αθήνα" style="width: 100%; margin-bottom: 10px;">
+
+        <label>Τ.Κ.:</label>
+        <input type="text" th:field="*{zip}" required placeholder="π.χ. 10563" style="width: 100%; margin-bottom: 10px;">
+
+        <label>Σημειώσεις (Προαιρετικό):</label>
+        <input type="text" th:field="*{notes}" style="width: 100%; margin-bottom: 10px;">
+
+        <button type="submit" style="background-color: #28a745; color: white; padding: 10px; border: none; cursor: pointer;">Αποθήκευση</button>
+    </form>
+</main>
+</body>
+</html>

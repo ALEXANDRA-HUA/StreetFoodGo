@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="el" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Οι Παραγγελίες μου</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .order-card { border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; border-radius: 8px; background: #fff; }
+        .status { font-weight: bold; padding: 5px; border-radius: 4px; display: inline-block; }
+        .NEW { color: blue; background: #e6f0ff; }
+        .ACCEPTED { color: orange; background: #fff5e6; }
+        .REJECTED { color: red; background: #ffe6e6; }
+        .COMPLETED { color: green; background: #e6ffe6; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Οι Παραγγελίες μου</h1>
+    <nav>
+        <a th:href="@{/}">Αρχική</a> |
+        <a th:href="@{/profile}">Προφίλ</a>
+    </nav>
+</header>
+<main>
+    <div th:if="${orders.isEmpty()}">
+        <p>Δεν έχετε κάνει ακόμα καμία παραγγελία.</p>
+        <a th:href="@{/}">Βρείτε ένα κατάστημα!</a>
+    </div>
+
+    <div th:each="order : ${orders}" class="order-card">
+        <h3>
+            Παραγγελία #<span th:text="${order.id}"></span>
+            από <span th:text="${order.store.name}"></span>
+        </h3>
+        <p>Ημερομηνία: <span th:text="${#temporals.format(order.createdDate, 'dd-MM-yyyy HH:mm')}"></span></p>
+        <p>Σύνολο: <strong th:text="${order.totalAmount} + '€'"></strong></p>
+
+        <p>Κατάσταση:
+            <span class="status" th:classappend="${order.status}" th:text="${order.status}"></span>
+        </p>
+    </div>
+</main>
+</body>
+</html>

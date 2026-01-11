@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="el" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Επιτυχία!</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; background-color: #f4f4f4; }
+        .success-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); display: inline-block; }
+        h2 { color: #28a745; }
+        .btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="success-box">
+    <h2>Η παραγγελία ολοκληρώθηκε!</h2>
+    <p>Κωδικός Παραγγελίας: <strong th:text="'#' + ${orderId}">#000</strong></p>
+    <p>Ευχαριστούμε που προτιμήσατε το StreetFoodGo.</p>
+
+    <a th:href="@{/}" class="btn">Επιστροφή στην Αρχική</a>
+</div>
+
+<script>
+    // Καθαρισμός καλαθιού
+    localStorage.removeItem('streetfood_cart');
+</script>
+
+</body>
+</html>

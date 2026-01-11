@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="el" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>StreetFoodGo - Αρχική</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .status-badge { font-size: 0.7em; padding: 2px 6px; border-radius: 4px; color: white; vertical-align: middle; margin-left: 10px; }
+        .status-open { background-color: #28a745; }
+        .status-closed { background-color: #dc3545; }
+        .store-closed-opacity { opacity: 0.7; }
+        .filters-container { background-color: #f1f1f1; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; }
+        .filter-group { display: flex; flex-direction: column; }
+        .filter-select { padding: 5px; border-radius: 4px; border: 1px solid #ccc; min-width: 150px; }
+        .btn-filter { padding: 6px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; height: fit-content; margin-top: auto; }
+        .btn-clear { text-decoration: none; color: #666; font-size: 0.9em; margin-top: auto; padding-bottom: 5px; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>StreetFoodGo</h1>
+    <nav>
+        <div sec:authorize="!isAuthenticated()">
+            <a th:href="@{/login}">Σύνδεση</a> |
+            <a th:href="@{/register}">Εγγραφή</a>
+        </div>
+        <div sec:authorize="isAuthenticated()">
+            <span sec:authentication="name">User</span> |
+
+            <a sec:authorize="hasRole('OWNER')" th:href="@{/owner/dashboard}" style="color: gold; font-weight: bold;">🎛️ Dashboard</a>
+            <span sec:authorize="hasRole('OWNER')"> | </span>
+
+            <a sec:authorize="hasRole('CUSTOMER')" th:href="@{/orders/my-orders}">Οι Παραγγελίες μου</a>
+            <span sec:authorize="hasRole('CUSTOMER')"> | </span>
+
+            <a th:href="@{/profile}">Προφίλ</a> |
+            <form th:action="@{/logout}" method="post" style="display:inline;">
+                <button type="submit" style="background:none; border:none; color:inherit; cursor:pointer; text-decoration:underline; font-size:1em; padding:0;">Αποσύνδεση</button>
+            </form>
+        </div>
+    </nav>
+</header>
+
+<main>
+    <h2>Αναζήτηση Καταστημάτων</h2>
+
+    <form th:action="@{/}" method="get" class="filters-container">
+        <div class="filter-group">
+            <label>Περιοχή:</label>
+            <select name="area" class="filter-select">
+                <option value="">Όλες οι περιοχές</option>
+                <option th:each="a : ${areas}" th:value="${a}" th:text="${a}" th:selected="${a == selectedArea}"></option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Κουζίνα:</label>
+            <select name="cuisine" class="filter-select">
+                <option value="">Όλες οι κουζίνες</option>
+                <option th:each="c : ${cuisines}" th:value="${c}" th:text="${c}" th:selected="${c == selectedCuisine}"></option>
+            </select>
+        </div>
+        <button type="submit" class="btn-filter">Αναζήτηση</button>
+        <a th:href="@{/}" class="btn-clear">Καθαρισμός</a>
+    </form>
+
+    <div th:if="${stores == null or stores.isEmpty()}">
+        <p>Δεν βρέθηκαν καταστήματα με αυτά τα κριτήρια.</p>
+    </div>
+
+    <ul th:unless="${stores == null or stores.isEmpty()}" class="store-list">
+        <li th:each="store : ${stores}" class="store-item" th:classappend="${!store.open} ? 'store-closed-opacity'">
+            <h3>
+                <a th:href="@{/store/{id}(id=${store.id})}" th:text="${store.name}">Όνομα</a>
+                <span th:if="${store.open}" class="status-badge status-open">ΑΝΟΙΧΤΟ</span>
+                <span th:unless="${store.open}" class="status-badge status-closed">ΚΛΕΙΣΤΟ</span>
+            </h3>
+            <p><strong>Περιοχή:</strong> <span th:text="${store.area}"></span></p>
+            <p><strong>Κουζίνα:</strong> <span th:text="${store.cuisineType}"></span></p>
+            <p><strong>Ελάχιστη Παραγγελία:</strong> <span th:text="${store.minOrderAmount}"></span>€</p>
+        </li>
+    </ul>
+</main>
+</body>
+</html>
